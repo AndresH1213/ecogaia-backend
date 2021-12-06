@@ -22,7 +22,7 @@ exports.getCombos = async (req, res = response) => {
 
 exports.setCombos = (req, res = response, next) => {
   const {title, price, products } = req.body;
-  console.log(title, price, JSON.parse(products))
+
   if (!title || !price || !products) {
     return res.status(400).json({
       ok: false,
@@ -37,11 +37,7 @@ exports.setCombos = (req, res = response, next) => {
   })
     .then((result) => {
         req.result = result;
-    //   return res.json({
-    //     ok: true,
-    //     msg: "Combo created",
-    //     result,
-    //   });
+
         next()
     })
     .catch((err) => {

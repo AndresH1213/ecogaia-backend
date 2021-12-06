@@ -36,8 +36,8 @@ exports.validateADMIN = async (req, res, next) => {
                 ok:false,
                 msg: "User does not exist"
             })
-        }
-
+        };
+        
         if ( userDB.role !== 'ADMINISTRATOR') {
             return res.status(403).json({
                 ok:false,

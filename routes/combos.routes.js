@@ -8,7 +8,7 @@ const { validateJWT, validateADMIN } = require('../middlewares/validate-jwt');
 const { setCombos, getCombos, removeCombo } = require('../controllers/combos');
 const { fileUpload } = require('../controllers/products');
 
-router.post('/', [validateJWT, setCombos], fileUpload );
+router.post('/', [validateJWT, validateADMIN ],setCombos, fileUpload );
 
 router.get('/:id', getCombos);
 

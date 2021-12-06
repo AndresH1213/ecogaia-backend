@@ -1,0 +1,69 @@
+const Combo = require("../models/Combo");
+
+const { updateImage, addImage } = require("../helpers/update-image");
+
+exports.getCombos = async (req, res = response) => {
+  const combos = await Combo.findOne({ availability: true }).populate(
+    "products",
+    "name imageUrl price"
+  );
+
+  if (combos.length < 1) {
+    res.status(404).json({
+      ok: false,
+      msg: "Any available combos found",
+    });
+  }
+  res.json({
+    ok: true,
+    combos,
+  });
+};
+
+exports.setCombos = (req, res = response, next) => {
+  const {title, price, products } = req.body;
+  console.log(title, price, JSON.parse(products))
+  if (!title || !price || !products) {
+    return res.status(400).json({
+      ok: false,
+      msg: "No data send it to the server",
+    });
+  }
+  Combo.create({
+    title: title,
+    products: JSON.parse(products),
+    price: price,
+    image: "no image yet",
+  })
+    .then((result) => {
+        req.result = result;
+    //   return res.json({
+    //     ok: true,
+    //     msg: "Combo created",
+    //     result,
+    //   });
+        next()
+    })
+    .catch((err) => {
+      console.log(err);
+      next(err)
+    });
+};
+
+exports.removeCombo = (req, res = response) => {
+  const comboId = req.params.id;
+  Combo.deleteOne({ _id: comboId })
+    .then((result) => {
+      return res.json({
+        ok: true,
+        msg: "Combo removed",
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json({
+        ok: false,
+        msg: "Error removing combo",
+      });
+    });
+};

@@ -1,7 +1,5 @@
 const Combo = require("../models/Combo");
 
-const { updateImage, addImage } = require("../helpers/update-image");
-
 exports.getCombos = async (req, res = response) => {
   const combos = await Combo.findOne({ availability: true }).populate(
     "products",

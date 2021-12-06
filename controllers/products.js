@@ -55,7 +55,7 @@ exports.fileUpload = (req, res = response) => {
     let type = req.params.type;
     let uid = req.params.id;
     let forUpdate = req.body.update;
-
+    // if the request comes from the combo create controllers
     if (req.result) {
         uid = req.result._id;
         type = 'combo';

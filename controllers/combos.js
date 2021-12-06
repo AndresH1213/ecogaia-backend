@@ -52,7 +52,7 @@ exports.removeCombo = (req, res = response) => {
     .then((result) => {
       return res.json({
         ok: true,
-        msg: "Combo removed",
+        msg: `Combo ${comboId} removed`,
       });
     })
     .catch((err) => {

@@ -1,34 +1,26 @@
 const Combo = require("../models/Combo");
+const asyncWrapper = require('../middlewares/async');
 
-exports.singleCombo = async (req, res = response ) => {
+exports.singleCombo = asyncWrapper( async (req, res = response ) => {
   let { title } = req.query;
   if (title) {
     title = title.replace('+',' ')
   }
-
-  try {
-    const combo = await Combo.findOne({title: title}).populate(
-      "products",
-      "name"
-    );
-    if (!combo) {
-      return res.status(404).json({
-        ok: false,
-        msg: "No combo found with that title",
-      });
-    }
-    res.json({
-      ok: true,
-      combo
-    })
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
+  const combo = await Combo.findOne({title: title}).populate(
+    "products",
+    "name"
+  );
+  if (!combo) {
+    return res.status(404).json({
       ok: false,
-      msg: 'Ocurrio un error por favor comunicarse con el administrador'
+      msg: "No combo found with that title",
     });
   }
-}
+  res.json({
+    ok: true,
+    combo
+  })
+})
 
 exports.getCombos = async (req, res = response) => {
   const combos = await Combo.find({ availability: true })

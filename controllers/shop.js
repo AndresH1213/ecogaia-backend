@@ -27,7 +27,7 @@ exports.postOrder = async (req, res = response) => {
     /* cartData = {                                       userData = {
         products: { productId, characteristics },    /=\    email, phoneNumber,
         totalValue: product                                 state, city, address
-    }                                                     }
+        }                                                  }
     */
     if (!cartData || !userData) {
         return res.status(400).json({

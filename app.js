@@ -6,6 +6,8 @@ const cors = require('cors');
 const connectDB = require('./db/connect');
 const app = express();
 
+const notFound = require('./middlewares/not-found');
+
 // routes import
 const authRoutes = require('./routes/auth.routes');
 const productRoutes = require('./routes/products.routes');
@@ -23,6 +25,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/combos', combosRoutes);
 app.use('/api/shop', shopRoutes);
+
+app.use(notFound);
 
 const port = 3000 || process.env.PORT;
 

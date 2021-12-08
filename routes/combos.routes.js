@@ -5,12 +5,14 @@ const router = Router();
 router.use(expressFileupload());
 
 const { validateJWT, validateADMIN } = require('../middlewares/validate-jwt');
-const { setCombos, getCombos, removeCombo } = require('../controllers/combos');
+const { setCombos, getCombos, singleCombo, removeCombo } = require('../controllers/combos');
 const { fileUpload } = require('../controllers/products');
 
 router.post('/', [validateJWT, validateADMIN ],setCombos, fileUpload );
 
-router.get('/:id', getCombos);
+router.get('/one', singleCombo);
+
+router.get('/', getCombos);
 
 router.delete('/:id', [validateJWT, validateADMIN], removeCombo )
 

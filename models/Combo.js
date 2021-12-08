@@ -29,7 +29,7 @@ const ComboSchema = new Schema({
 });
 
 ComboSchema.method('toJSON', function() {
-    const { __v, createAt, ...object } = this.toObject();
+    const { __v, createAt, availability, ...object } = this.toObject();
 
     return object
 });

@@ -1,13 +1,40 @@
 const Combo = require("../models/Combo");
 
+exports.singleCombo = async (req, res = response ) => {
+  let { title } = req.query;
+  if (title) {
+    title = title.replace('+',' ')
+  }
+
+  try {
+    const combo = await Combo.findOne({title: title}).populate(
+      "products",
+      "name"
+    );
+    if (!combo) {
+      return res.status(404).json({
+        ok: false,
+        msg: "No combo found with that title",
+      });
+    }
+    res.json({
+      ok: true,
+      combo
+    })
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      ok: false,
+      msg: 'Ocurrio un error por favor comunicarse con el administrador'
+    });
+  }
+}
+
 exports.getCombos = async (req, res = response) => {
-  const combos = await Combo.findOne({ availability: true }).populate(
-    "products",
-    "name imageUrl price"
-  );
+  const combos = await Combo.find({ availability: true })
 
   if (combos.length < 1) {
-    res.status(404).json({
+    return res.status(404).json({
       ok: false,
       msg: "Any available combos found",
     });
@@ -29,7 +56,7 @@ exports.setCombos = (req, res = response, next) => {
   }
   Combo.create({
     title: title,
-    products: JSON.parse(products),
+    products: products.split(','),
     price: price,
     image: "no image yet",
   })

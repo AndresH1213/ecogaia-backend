@@ -5,11 +5,11 @@ const Schema = mongoose.Schema;
 const productSchema = new Schema({
     name: {
         type: String,
-        required: true,
+        required: [true, 'Must provide a name'],
     },
     code: {
         type: String,
-        required: true,
+        required: [true, 'Must provide a code'],
     },
     imageUrl: {
         type: [String],
@@ -18,7 +18,7 @@ const productSchema = new Schema({
     },
     price: {
         type: Number,
-        required: true
+        required: [true, 'Must provide a price']
     },
     characteristics: {
         type: Object,

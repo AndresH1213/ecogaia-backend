@@ -9,9 +9,9 @@ mercadopago.configure({
   access_token: process.env.ACCESS_TOKEN_MERCADOPAGO_DEVELOPMENT
 });
 
-exports.saveClient = (req, res = response) => {
+exports.saveClient = async (req, res = response) => {
     const { email, cart, order } = req.body;
-    const client =  new User({email, cart, order});
+    const client =  await User.create({email, cart, order});
     
     res.json({
         client

@@ -2,15 +2,20 @@ const fs = require("fs");
 const path = require("path");
 const { response } = require("express");
 const Product = require("../models/Product");
+const { createCustomError } = require('../errors/curstom-error')
 const asyncWrapper = require("../middlewares/async");
+
 const { updateImage, addImage } = require("../helpers/update-image");
 const { processImage } = require("../helpers/process-image");
 
-exports.getProducts = asyncWrapper(async (req, res = response) => {
+exports.getProducts = asyncWrapper(async (req, res = response, next) => {
   const [products, total] = await Promise.all([
     Product.find(),
     Product.countDocuments(),
   ]);
+  if (products.length === 0) {
+    return next(createCustomError('No products found in the db', 404))
+  }
   res.json({
     ok: true,
     products,
@@ -18,7 +23,7 @@ exports.getProducts = asyncWrapper(async (req, res = response) => {
   });
 });
 
-exports.getSingleProduct = asyncWrapper(async (req, res = response) => {
+exports.getSingleProduct = asyncWrapper(async (req, res = response, next) => {
   const { id, code } = req.query;
   const queryObject = {};
   if (id) {
@@ -29,10 +34,7 @@ exports.getSingleProduct = asyncWrapper(async (req, res = response) => {
   }
   const product = await Product.findOne(queryObject);
   if (!product) {
-    return res.status(404).json({
-      ok: false,
-      msg: "There is any product with that query param",
-    });
+    return next(createCustomError('There is any product with that query param', 404))
   }
   res.status(200).json({
     ok: true,
@@ -54,19 +56,13 @@ exports.fileUpload = (req, res = response) => {
 
   // validate file exist
   if (!req.files || Object.keys(req.files).length === 0) {
-    return res.status(400).json({
-      ok: false,
-      msg: "There is no files uploaded",
-    });
+    return next(createCustomError('There is no files uploaded', 400))
   }
 
   const typesAllowed = ["combo", "product"];
 
   if (!typesAllowed.includes(type)) {
-    return res.status(400).json({
-      ok: false,
-      msg: "The type selected should be combo or product",
-    });
+    return next(createCustomError('The type selected should be combo or product', 400))
   }
 
   // processing the image...
@@ -75,19 +71,13 @@ exports.fileUpload = (req, res = response) => {
   const [path, filename] = processImage(file, type);
 
   if (!path) {
-    return res.status(400).json({
-      ok: false,
-      msg: "The extension is not allowed",
-    });
+    return next(createCustomError('The extension is not allowed', 400));
   }
 
   // move the image;
   file.mv(path, function (err) {
     if (err) {
-      return res.status(500).json({
-        ok: false,
-        msg: "Error saving the image in the server",
-      });
+      return next(createCustomError('Error saving the image in the server', 500));
     }
 
     // updated database
@@ -139,12 +129,8 @@ exports.createProduct = asyncWrapper(async (req, res = response) => {
     const [path, filename] = processImage(file, "product");
 
     if (!path || !filename) {
-      return res.status(400).json({
-        ok: false,
-        msg: "The extension is not allowed",
-      });
+        return next(createCustomError('The extension is not allowed', 400));
     }
-
     imageUrl = filename;
   }
 
@@ -161,10 +147,7 @@ exports.createProduct = asyncWrapper(async (req, res = response) => {
   if (file) {
     file.mv(`./uploads/product/${imageUrl}`, function (err) {
       if (err) {
-        return res.status(500).json({
-          ok: false,
-          msg: "Error saving the image in the server",
-        });
+        return next(createCustomError('Error saving the image in the server', 500));
       }
     });
   }
@@ -182,10 +165,7 @@ exports.updateProduct = asyncWrapper(async (req, res = response) => {
   const productDB = await Product.findById(productId);
 
   if (!productDB) {
-    return res.status(404).json({
-      ok: false,
-      msg: "There is any product with that id",
-    });
+    return next(createCustomError('There is any product with that id', 404));
   }
 
   //Images array manipulation, when no url is send delete the last image, then the
@@ -225,11 +205,9 @@ exports.deleteProduct = asyncWrapper(async (req, res = response) => {
 
   const product = await Product.findById(productId);
   if (!product) {
-    return res.status(404).json({
-      ok: false,
-      msg: "There is any product with that id",
-    });
+    return next(createCustomError('There is any product with that id', 404));
   }
+  
   await Product.findByIdAndDelete(productId);
   res.json({
     ok: true,

@@ -7,6 +7,7 @@ const connectDB = require('./db/connect');
 const app = express();
 
 const notFound = require('./middlewares/not-found');
+const errorHandlerMiddleware = require('./middlewares/error-handler')
 
 // routes import
 const authRoutes = require('./routes/auth.routes');
@@ -27,6 +28,7 @@ app.use('/api/combos', combosRoutes);
 app.use('/api/shop', shopRoutes);
 
 app.use(notFound);
+app.use(errorHandlerMiddleware)
 
 const port = 3000 || process.env.PORT;
 

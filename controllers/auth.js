@@ -1,92 +1,66 @@
 const { response } = require("express");
-const User = require('../models/User');
-const bcrypt = require('bcryptjs');
+const bcrypt = require("bcryptjs");
 
-const { generateJWT } = require('../helpers/jwt')
+const User = require("../models/User");
+const asyncWrapper = require("../middlewares/async");
+const { generateJWT } = require("../helpers/jwt");
 
-exports.login = async (req, res = response) => {
+exports.login = asyncWrapper(async (req, res = response) => {
+  const { email, password } = req.body;
+
+  const userDB = await User.findOne({ email });
+  if (!userDB) {
+    return next(createCustomError("Email invalid", 404));
+  }
+  // password verification
+  const validPassword = bcrypt.compareSync(password, userDB.password);
+
+  if (!validPassword) {
+    return next(createCustomError("Password invalid", 404));
+  }
+
+  // generate token JWT
+  const token = await generateJWT(userDB._id);
+
+  res.json({
+    ok: true,
+    token,
+  });
+});
+// this route is not avaible, the users do not have to signup for use the app
+exports.signup = asyncWrapper( async (req, res = response) => {
     const { email, password } = req.body;
+        const emailExist = await User.findOne({email});
 
-    try {
-        const userDB = await User.findOne({email});
-        if (!userDB) {
-            return res.status(404).json({
-                ok: false,
-                msg: 'Email invalid'
-            });
+        if (emailExist && emailExist.password) {
+            return next(createCustomError("There is already one user with that email", 400));
+        };
+        const user = new User({email, password})
+
+        if (password) {
+            // Encrypt the password
+          const salt = bcrypt.genSaltSync();
+          user.password = bcrypt.hashSync(password, salt)
         }
-        // password verification
-        const validPassword = bcrypt.compareSync(password, userDB.password)
+        await user.save();
 
-        if (!validPassword) {
-            return res.status(400).json({
-                ok: false,
-                msg: 'Password invalid'
-            });
-        }
-
-        // generate token JWT
-        const token = await generateJWT( userDB._id );
-
-        res.json({
+        res.status(200).json({
             ok: true,
-            token,
-        });
-
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            ok: false,
-            msg: "Please comunicate with the administrator"
+            user
         })
-    }
-};
+});
 
-// exports.signup = async (req, res = response) => {
-//     const { email, password } = req.body;
-//     try {
-//         const emailExist = await User.findOne({email});
+exports.renewToken = asyncWrapper( async (req, res = response) => {
+  const uid = req.uid;
 
-//         if (emailExist && emailExist.password) {
-//             return res.status(400).json({
-//                 ok: false,
-//                 msg: 'There is already one user with that email'
-//             })
-//         };
-//         const user = new User({email, password})
+  const user = await User.findById(uid, "email role");
 
-//         if (password) {
-//             // Encrypt the password
-//           const salt = bcrypt.genSaltSync();
-//           user.password = bcrypt.hashSync(password, salt)
-//         }
-//         await user.save();
+  // generate JWT only Admin
+  const token = await generateJWT(uid);
 
-//         res.status(200).json({
-//             ok: true,
-//             user
-//         })
-
-//     } catch (error) {
-//         console.log(error);
-//         res.status(500).json({
-//             ok: false,
-//             msg: "Please comunicate with the administrator"
-//         })
-//     }
-// };
-
-exports.renewToken = async (req, res = response) => {
-    const uid = req.uid;
-
-    const user = await User.findById(uid, 'email role');
-
-    // generate JWT only Admin
-    const token = await generateJWT(uid);
-
-    res.json({
-        ok: true,
-        token,
-        user
-    })
-}
+  res.json({
+    ok: true,
+    token,
+    user,
+  });
+});

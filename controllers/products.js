@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { response } = require("express");
 const Product = require("../models/Product");
-const { createCustomError } = require('../errors/curstom-error')
+const { createCustomError } = require('../errors/curstom-error');
 const asyncWrapper = require("../middlewares/async");
 
 const { updateImage, addImage } = require("../helpers/update-image");

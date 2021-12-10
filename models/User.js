@@ -11,17 +11,6 @@ const userSchema = new Schema({
         type: String,
         default: "CLIENT"
     },
-    cart: [{
-        product: {
-            type: Schema.Types.ObjectId,
-            ref: 'Product'
-        },
-        quantity: {
-            type: Number,
-            default: 1,
-            min: 1
-        }
-    }],
     orders: [{
         type: Schema.Types.ObjectId,
         ref: 'Order'

@@ -9,7 +9,8 @@ const errorHandlerMiddleware = (err, req, res, next) => {
     }
     return res.status(500).json({
         ok: false,
-        msg: 'Ocurrió un error comuniquese con el administrador'
+        msg: 'Ocurrió un error comuniquese con el administrador',
+        error: err.message
     })
 }
 

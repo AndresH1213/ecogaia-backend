@@ -1,6 +1,9 @@
 const { response } = require("express");
 const User = require('../models/User');
+const Order = require('../models/Order');
 const Product = require('../models/Product');
+
+const asyncWrapper = require('../middlewares/async');
 // SDK de Mercado Pago
 const mercadopago = require ('mercadopago');
 
@@ -22,11 +25,11 @@ exports.getOrders = (req, res = response) => {
     res.json('get order route');
 }
 
-exports.postOrder = async (req, res = response) => {
+exports.postOrder = asyncWrapper( async (req, res = response) => {
     const { cartData, userData } = req.body;
     /* cartData = {                                       userData = {
-        products: { productId, characteristics },    /=\    email, phoneNumber,
-        totalValue: product                                 state, city, address
+        products: { prodId, characterist, qty },    /=\    email, phoneNumber,
+        totalValue: product                                 state, city, zip, address
         }                                                  }
     */
     if (!cartData || !userData) {
@@ -35,6 +38,7 @@ exports.postOrder = async (req, res = response) => {
             msg: 'No order in the request body'
         })
     };
+
     // search in the db for the product in the cart for check name and price;
     // Note: this algo is O(n^2) currently n max is 10 products.
     const prodIds = cartData.products.map(product => product.productId);
@@ -64,21 +68,62 @@ exports.postOrder = async (req, res = response) => {
         items: items,
         payer: {
             phone: { area_code: '+57', number: +userData.phoneNumber },
-            address: { zip_code: '', street_name: userData.address},
+            address: { zip_code: userData.zip_code, street_name: userData.address},
             email: userData.email,
             date_created: Date.now()
+        },
+        back_urls: {
+            success: 'http://localhost:4200',
+            failure: 'http://localhost:4200/products',
+            pending: 'http://localhost:4200'
+        },
+        auto_return: 'approved',
+        shipments: {
+            receiver_address: {
+                zip_code: userData.zip_code,
+                street_name: userData.address
+            }
         }
     };    
-    mercadopago.preferences.create(preference)
-    .then(function(response){
-        console.log(response.body)
-        res.json({
-            ok: true,
-            preferenceId: response.body.id,
-            init_point: response.body.init_point
+    const response = await mercadopago.preferences.create(preference)
+    const init_point = response.init_point
+    // create client if does not exist with the request info
+    const existClient = await User.findOne({email: userData.email});
+    const cartdb = cartData.products.map(product => ({product: product.productId, quantity: product.quantity}))
+    if (existClient) {
+        // create order in my DataBase
+        const newOrder = await Order.create({
+            userId: existClient._id,
+            cart: cartdb,
+            totalPrice: cartData.totalValue,
+            shippingAddress: {
+                zip_code: userData.zip_code,
+                state: userData.state,
+                city: userData.city,
+                address: userData.address,
+                addressExtraInfo: userData.addressExtraInfo
+            }
         })
-    }).catch(function(error){
-        console.log(error);
-    });
+        existClient.orders.push(newOrder._id);
+        existClient.save();
+    } else {
+        const newUser = await User.create({email: userData.email});
+        const newOrder = await Order.create({
+            userId: newUser._id,
+            cart: cartdb,
+            totalPrice: cartData.totalValue,
+            shippingAddress: {
+                zip_code: userData.zip_code,
+                state: userData.state,
+                city: userData.city,
+                address: userData.address,
+                addressExtraInfo: userData.addressExtraInfo
+            }
+        });
+        newUser.orders.push(newOrder._id);
+        newUser.save()
+    }
+    res.send('ok boy')
 
-}
+    // res.redirect(init_point)
+})

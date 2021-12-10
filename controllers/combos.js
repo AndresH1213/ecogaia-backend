@@ -38,18 +38,21 @@ exports.getCombos = async (req, res = response) => {
 };
 
 exports.setCombos = (req, res = response, next) => {
-  const {title, price, products } = req.body;
-
-  if (!title || !price || !products) {
+  const {title, price } = req.body;
+  let products = JSON.parse(req.body.products)
+  if (!req.files) {
     return res.status(400).json({
       ok: false,
-      msg: "No data send it to the server",
+      msg: "Image missing",
     });
   }
+  if (!Array.isArray(products)) {
+    products = products.split(',')
+  }
   Combo.create({
-    title: title,
-    products: products.split(','),
-    price: price,
+    title,
+    products,
+    price,
     image: "no image yet",
   })
     .then((result) => {

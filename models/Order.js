@@ -27,23 +27,32 @@ const orderSchema = new Schema({
         type: Boolean,
         default: false
     },
+    payment: {
+        type: Boolean,
+        default: false
+    },
     orderDate: {
         type: Date,
         default: Date.now()
     },
-    clientAddress: {
+    shippingAddress: {
+        zip_code: {
+            type: String,
+            required: [true, 'zipcode missing']
+        },
         state: {
             type: String,
-            required: [true, 'Se debe seleccionar el departamento']
+            required: [true, 'state is required']
         },
         city: {
             type: String,
-            required: [true,'Se debe selccionar la ciudad']
+            required: [true,'city required']
         },
         address: {
             type: String,
-            required: [true, 'Se debe colocar la dirección']
-        }     
+            required: [true, 'adress for shipping']
+        },
+        addressExtraInfo: String
     },
     phoneNumber: String
 });

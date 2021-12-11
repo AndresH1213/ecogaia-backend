@@ -38,7 +38,7 @@ app.get('*', (req, res) => {
     res.sendFile( path.resolve(__dirname, 'public/index.html'))
 })
 
-const port = 3000 || process.env.PORT;
+const port = process.env.PORT;
 
 const start = async () => {
     try {

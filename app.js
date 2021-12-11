@@ -31,12 +31,13 @@ app.use('/api/products', productRoutes);
 app.use('/api/combos', combosRoutes);
 app.use('/api/shop', shopRoutes);
 
-app.use(notFound);
-app.use(errorHandlerMiddleware);
-
 app.get('*', (req, res) => {
     res.sendFile( path.resolve(__dirname, 'public/index.html'))
 })
+
+app.use(notFound);
+app.use(errorHandlerMiddleware);
+
 
 const port = process.env.PORT;
 

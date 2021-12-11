@@ -21,6 +21,9 @@ app.use(cors());
 // middlewares
 app.use(express.json());
 
+// Public dir
+app.use(express.static('public'))
+
 // routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);

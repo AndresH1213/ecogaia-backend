@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 const connectDB = require('./db/connect');
 const app = express();
@@ -31,7 +32,11 @@ app.use('/api/combos', combosRoutes);
 app.use('/api/shop', shopRoutes);
 
 app.use(notFound);
-app.use(errorHandlerMiddleware)
+app.use(errorHandlerMiddleware);
+
+app.get('*', (req, res) => {
+    res.sendFile( path.resolve(__dirname, 'public/index.html'))
+})
 
 const port = 3000 || process.env.PORT;
 

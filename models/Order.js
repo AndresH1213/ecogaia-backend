@@ -9,13 +9,18 @@ const orderSchema = new Schema({
     cart: [{
         product: {
             type: Schema.Types.ObjectId,
-            ref: 'Product'
+            refPath: 'cart.onModel'
         },
         quantity: {
             type: Number,
             default: 1,
             min: 1
-        }
+        },
+        onModel: {
+            type: String,
+            required: true,
+            enum: ['Product', 'Combo']
+        },
     }],
     totalPrice: {
         type: Number,
@@ -26,6 +31,10 @@ const orderSchema = new Schema({
     delivered: {
         type: Boolean,
         default: false
+    },
+    orderNumber: {
+        type: String,
+        default: 'Unprocess'
     },
     payment: {
         type: Boolean,

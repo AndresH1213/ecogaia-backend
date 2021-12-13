@@ -4,7 +4,6 @@ const User = require('../models/User');
 exports.validateJWT = (req, res, next) => {
     // Read the token
     const token = req.header('x-token');
-
     if (!token) {
         return res.status(401).json({
             ok: false,

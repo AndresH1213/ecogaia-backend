@@ -2,11 +2,16 @@ const Combo = require("../models/Combo");
 const asyncWrapper = require('../middlewares/async');
 
 exports.singleCombo = asyncWrapper( async (req, res = response ) => {
-  let { title } = req.query;
+  let { title, comboId } = req.query;
+  const queryObject = {}
   if (title) {
     title = title.replace('+',' ')
+    queryObject.title = title
   }
-  const combo = await Combo.findOne({title: title}).populate(
+  if (comboId) {
+    queryObject._id = comboId
+  }
+  const combo = await Combo.findOne(queryObject).populate(
     "products",
     "name"
   );
@@ -39,7 +44,7 @@ exports.getCombos = async (req, res = response) => {
 
 exports.setCombos = (req, res = response, next) => {
   const {title, price } = req.body;
-  let products = JSON.parse(req.body.products)
+  let products = req.body.products
   if (!req.files) {
     return res.status(400).json({
       ok: false,
@@ -68,7 +73,7 @@ exports.setCombos = (req, res = response, next) => {
 
 exports.removeCombo = (req, res = response) => {
   const comboId = req.params.id;
-  Combo.deleteOne({ _id: comboId })
+  Combo.findOneAndUpdate({ _id: comboId }, { availability: false})
     .then((result) => {
       return res.json({
         ok: true,

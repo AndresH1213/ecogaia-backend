@@ -1,17 +1,29 @@
 const { Router } = require('express');
-const { body } = require('express-validator');
+const { body, query } = require('express-validator');
 const validateFields = require('../middlewares/validate-fields');
+const { validateADMIN, validateJWT } = require('../middlewares/validate-jwt');
 
 const router = Router();
 
 const {
     getOrders,
+    getSingleOrder,
     postOrder
  } = require('../controllers/shop');
 
 // parent route --> api/shop/...
 
-router.get('/orders', getOrders);
+router.get('/orders', [validateJWT, validateADMIN] ,getOrders);
+
+router.get('/order',[
+    query('email').custom((value, {req, loc, path}) => {
+        if ( !req.query.email && !req.query.orderNumber ) {
+            throw new Error('Query params is missing')
+        }
+        return value
+    }),
+    validateFields
+], getSingleOrder);
 
 router.post('/order',[
     body("cartData.products", "No hay productos en la petición")

@@ -16,12 +16,12 @@ router.post('/', [
             .notEmpty().isString().isLength({min: 4, max: 80}).trim(),
         body("price", "Se necesita un precio correcto").isNumeric(),
         body("products", "Deben colocar products").notEmpty()
-    ,validateFields ],setCombos, fileUpload );
+    ,validateFields ], setCombos, fileUpload );
 
 router.get('/one', singleCombo);
 
 router.get('/', getCombos);
 
-router.delete('/:id', [validateJWT, validateADMIN], removeCombo )
+router.patch('/:id', [validateJWT, validateADMIN], removeCombo )
 
 module.exports = router;

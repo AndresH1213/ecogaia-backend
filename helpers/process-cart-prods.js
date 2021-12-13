@@ -5,8 +5,8 @@ const processProd = async (currentProd, index) => {
     const itemId = currentProd.productId;
     let item;
     let description = currentProd.description
-    if (!currentProd.combo &&  description !== 'No description') {
-        const descObject = JSON.parse(currentProd.description);
+    if (!currentProd.combo) {
+        const descObject = typeof(description) === typeof('string') ? {desc: 'No description' } : JSON.parse(description);
         description = Object.values(descObject).join(', ');
         item = await Product.findById(itemId, 'name price');
         if (!item) {
@@ -14,9 +14,8 @@ const processProd = async (currentProd, index) => {
         }
         item.description = description;
     } else {
-        const descObject = JSON.parse(currentProd.description);
-        const products = Object.keys(descObject)
-        description = '';
+        const descObject = JSON.parse(description);
+        const products = Object.keys(descObject);
         for (let i = 0; i < products.length; i++) {
             const charecteristics = Object.values(descObject[products[i]]).join(', ');
             description += `${products[i]}: ${charecteristics}. `

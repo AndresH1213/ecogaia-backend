@@ -4,11 +4,10 @@ exports.processImage = (file, type) => {
     
     const nameSplit = file.name.split('.');
     const extFile = nameSplit[nameSplit.length - 1];
-    
     // validate extension
-    const validExt = ['png','jpg','jpeg','gif','webp'];
+    const validExt = ['png','jpg','jpeg','gif','webp','JPG'];
     if (!validExt.includes(extFile)) {
-        return null
+        throw new Error('No se acepta ese formato de foto')
     }
 
     // Generate the file name

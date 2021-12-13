@@ -104,7 +104,7 @@ exports.postOrder = asyncWrapper(async (req, res = response, next) => {
     },
     back_urls: {
       success: "http://localhost:4200/success",
-      failure: "http://localhost:4200/products",
+      failure: "http://localhost:4200/failure",
       pending: "http://localhost:4200",
     },
     auto_return: "approved",

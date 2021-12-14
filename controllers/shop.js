@@ -7,8 +7,6 @@ const asyncWrapper = require("../middlewares/async");
 const processProd = require("../helpers/process-cart-prods");
 // SDK de Mercado Pago
 const mercadopago = require("mercadopago");
-const Product = require("../models/Product");
-const Combo = require("../models/Combo");
 
 // Agrega credenciales
 mercadopago.configure({
@@ -103,9 +101,9 @@ exports.postOrder = asyncWrapper(async (req, res = response, next) => {
       date_created: Date.now(),
     },
     back_urls: {
-      success: "http://localhost:4200/success",
-      failure: "http://localhost:4200/failure",
-      pending: "http://localhost:4200",
+      success: "http://localhost:3000/success",
+      failure: "http://localhost:3000/failure",
+      pending: "http://localhost:3000",
     },
     auto_return: "approved",
     shipments: {

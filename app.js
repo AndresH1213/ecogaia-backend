@@ -26,7 +26,7 @@ app.use(express.json());
 app.use(helmet());
 app.use(compression());
 // Public dir
-// app.use(express.static('public'))
+app.use(express.static('public'));
 
 // routes
 app.use('/api/auth', authRoutes);
@@ -34,9 +34,9 @@ app.use('/api/products', productRoutes);
 app.use('/api/combos', combosRoutes);
 app.use('/api/shop', shopRoutes);
 
-// app.get('*', (req, res) => {
-//     res.sendFile( path.resolve(__dirname, 'public/index.html'))
-// })
+app.get('*', (req, res) => {
+    res.sendFile( path.resolve(__dirname, 'public/index.html'))
+})
 
 app.use(notFound);
 app.use(errorHandlerMiddleware);

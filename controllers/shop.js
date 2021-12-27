@@ -1,4 +1,5 @@
 const { response } = require("express");
+// TODO IMPORT THE MODULE NODE-FETCH IN THE CURRENT VERSION
 const fetch = require('node-fetch');
 
 const User = require("../models/User");
@@ -139,7 +140,7 @@ exports.orderFinish = async (req, res = response) => {
     }
   }
   )
-  console.log(responsedata.json())
+  console.log(responsedata.body)
   // if (!additional_info) {
   //   return createCustomError('Problema con el pago en el servidor', 404)
   // }

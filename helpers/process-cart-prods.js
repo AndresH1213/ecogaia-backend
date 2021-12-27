@@ -30,4 +30,23 @@ const processProd = async (currentProd, index) => {
     return item;
 }
 
-module.exports = processProd
+const findModel = async (prodId) => {
+    try {
+        const isProd = await Product.findById(prodId)
+        if (isProd) {
+            return 'Product'
+        }
+        const isCombo = await Combo.findById(prodId)
+        if (isCombo) {
+            return 'Combo'
+        }
+        return 'None'
+    } catch (error) {
+        
+    }
+}
+
+module.exports = {
+    processProd,
+    findModel
+}

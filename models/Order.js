@@ -16,6 +16,10 @@ const orderSchema = new Schema({
             default: 1,
             min: 1
         },
+        description: {
+            type: String,
+            default: ''
+        },
         onModel: {
             type: String,
             required: true,
@@ -39,6 +43,9 @@ const orderSchema = new Schema({
     payment: {
         type: Boolean,
         default: false
+    },
+    preferenceId: {
+        type: String
     },
     orderDate: {
         type: Date,

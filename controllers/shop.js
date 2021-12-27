@@ -1,10 +1,12 @@
 const { response } = require("express");
+const fetch = require('node-fetch');
+
 const User = require("../models/User");
 const Order = require("../models/Order");
 
 const { createCustomError } = require("../errors/curstom-error");
 const asyncWrapper = require("../middlewares/async");
-const processProd = require("../helpers/process-cart-prods");
+const {processProd, findModel} = require("../helpers/process-cart-prods");
 // SDK de Mercado Pago
 const mercadopago = require("mercadopago");
 
@@ -56,7 +58,7 @@ exports.getSingleOrder = asyncWrapper(async (req, res = response, next) => {
 exports.postOrder = asyncWrapper(async (req, res = response, next) => {
   const { cartData, userData } = req.body;
   /* cartData = {                                       userData = {
-        products: { prodId, characterist, qty },    /=\    email, phoneNumber,
+        products: {prodId, characterist, qty}[],    /=\    email, phoneNumber,
         totalValue: product                                 state, city, zip, address
         }                                                  }
     */
@@ -98,68 +100,103 @@ exports.postOrder = asyncWrapper(async (req, res = response, next) => {
       phone: { area_code: "+57", number: +userData.phoneNumber },
       address: { zip_code: userData.zip_code, street_name: userData.address },
       email: userData.email,
-      date_created: Date.now(),
+      total_amount: cartData.totalValue
     },
     back_urls: {
-      success: "http://localhost:3000/success",
-      failure: "http://localhost:3000/failure",
-      pending: "http://localhost:3000",
+      success: `${process.env.HOST_URI}/api/shop/order-process`,
+      failure: `${process.env.HOST_URI}/api/shop/order-process`,
+      pending: `${process.env.HOST_URI}/api/shop/order-process`,
     },
     auto_return: "approved",
     shipments: {
       receiver_address: {
         zip_code: userData.zip_code,
+        state: userData.state,
+        city: userData.city,
         street_name: userData.address,
+        extra: userData.addressExtraInfo,
       },
     },
   };
   const response = await mercadopago.preferences.create(preference);
   const init_point = response.body.init_point;
-  // create client if does not exist with the request info
-  const existClient = await User.findOne({ email: userData.email });
-  const cartdb = cartData.products.map((product) => {
-    let onModel = "Product";
-    if (product.combo) {
-      onModel = "Combo";
-    }
-    return { product: product.productId, quantity: product.quantity, onModel };
-  });
-  if (existClient) {
-    // create order in my DataBase
-    const newOrder = await Order.create({
-      userId: existClient._id,
-      cart: cartdb,
-      totalPrice: cartData.totalValue,
-      shippingAddress: {
-        zip_code: userData.zip_code,
-        state: userData.state,
-        city: userData.city,
-        address: userData.address,
-        addressExtraInfo: userData.addressExtraInfo,
-      },
-    });
-    existClient.orders.push(newOrder._id);
-    existClient.save();
-  } else {
-    const newUser = await User.create({ email: userData.email });
-    const newOrder = await Order.create({
-      userId: newUser._id,
-      cart: cartdb,
-      totalPrice: cartData.totalValue,
-      shippingAddress: {
-        zip_code: userData.zip_code,
-        state: userData.state,
-        city: userData.city,
-        address: userData.address,
-        addressExtraInfo: userData.addressExtraInfo,
-      },
-    });
-    newUser.orders.push(newOrder._id);
-    newUser.save();
-  }
 
   res.json({
     ok: true,
     init_point,
   });
 });
+
+exports.orderFinish = async (req, res = response) => {
+  const { collection_status, preference_id, payment_id } = req.query;
+  console.log(req.query)
+  const responsedata = await fetch(`https://api.mercadopago.com/v1/payments/${payment_id}`,
+  {
+    method: 'GET',
+    headers: {
+      'Content-Type':'application/json',
+      Authorization: `Bearer ${process.env.ACCESS_TOKEN_MERCADOPAGO_DEVELOPMENT}`
+    }
+  }
+  )
+  console.log(responsedata.json())
+  // if (!additional_info) {
+  //   return createCustomError('Problema con el pago en el servidor', 404)
+  // }
+
+  //  // create client if does not exist with the request info
+  //  const existClient = await User.findOne({ email: additional_info.payer.email });
+  //  const cartdb = []
+  //  for (let i = 0; i < additional_info.items.length; i++) {
+  //    let onModel = await findModel(additional_info.items[i].id)
+  //    if (onModel === 'None') {
+  //     throw new Error('One product in the cart was not found')
+  //    }
+  //    let cartdbObject = {
+  //      product: additional_info.items[i].id, 
+  //      quantity: additional_info.items[i].quantity,
+  //      onModel
+  //     }
+  //     cartdb.push(cartdbObject)
+  //  }
+  //  if (existClient) {
+  //    // create order in my DataBase
+  //    const newOrder = await Order.create({
+  //      userId: existClient._id,
+  //      cart: cartdb,
+  //      totalPrice: additional_info.payer.total_amount,
+  //      orderId: payment_id,
+  //      shippingAddress: {
+  //        zip_code: additional_info.shipments.receiver_address.zip_code,
+  //        state: additional_info.shipments.receiver_address.state,
+  //        city: additional_info.shipments.receiver_address.city,
+  //        address: additional_info.shipments.receiver_address.address,
+  //        addressExtraInfo: additional_info.shipments.receiver_address.extra,
+  //      },
+  //    });
+  //    existClient.orders.push(newOrder._id);
+  //    existClient.save();
+  //  } else {
+  //    const newUser = await User.create({ email: userData.email });
+  //    const newOrder = await Order.create({
+  //      userId: newUser._id,
+  //      cart: cartdb,
+  //      totalPrice: additional_info.payer.total_amount,
+  //      orderId: payment_id,
+  //      shippingAddress: {
+  //       zip_code: additional_info.shipments.receiver_address.zip_code,
+  //       state: additional_info.shipments.receiver_address.state,
+  //       city: additional_info.shipments.receiver_address.city,
+  //       address: additional_info.shipments.receiver_address.address,
+  //       addressExtraInfo: additional_info.shipments.receiver_address.extra,
+  //      },
+  //    });
+  //    newUser.orders.push(newOrder._id);
+  //    newUser.save();
+  //  }
+
+  // res.status(200).json({
+  //   ok: true,
+  //   payment_id
+  // })
+}

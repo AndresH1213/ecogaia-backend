@@ -8,6 +8,7 @@ const router = Router();
 const {
     getOrders,
     getSingleOrder,
+    orderFinish,
     postOrder
  } = require('../controllers/shop');
 
@@ -44,5 +45,12 @@ router.post('/order',[
         .not().isEmpty().trim()
     ,validateFields
 ],postOrder);
+
+router.get('/order-process',[query('payment_id').custom((value, {req, loc, path}) => {
+    if (!req.query.payment_id || req.query.payment_id < 1) {
+        throw new Error('Error en el proceso de pago!')
+    }
+    return value
+}), validateFields], orderFinish)
 
 module.exports = router;
